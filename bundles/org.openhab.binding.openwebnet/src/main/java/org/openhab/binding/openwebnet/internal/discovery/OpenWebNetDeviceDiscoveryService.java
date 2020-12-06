@@ -115,6 +115,11 @@ public class OpenWebNetDeviceDiscoveryService extends AbstractDiscoveryService
                 thingLabel = OpenWebNetBindingConstants.THING_LABEL_BUS_DIMMER;
                 deviceWho = Who.LIGHTING;
                 break;
+            case SCS_THERMOSTAT:
+                thingTypeUID = OpenWebNetBindingConstants.THING_TYPE_BUS_THERMOSTAT;
+                thingLabel = OpenWebNetBindingConstants.THING_LABEL_BUS_THERMOSTAT;
+                deviceWho = Who.THERMOREGULATION;
+                break;
             case SCS_SHUTTER_SWITCH:
             case SCS_SHUTTER_CONTROL: {
                 thingTypeUID = OpenWebNetBindingConstants.THING_TYPE_BUS_AUTOMATION;

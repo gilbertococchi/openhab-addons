@@ -53,6 +53,10 @@ public class OpenWebNetBindingConstants {
     public static final ThingTypeUID THING_TYPE_BUS_AUTOMATION = new ThingTypeUID(BINDING_ID, "bus_automation");
     public static final String THING_LABEL_BUS_AUTOMATION = "Automation";
 
+    // Thermostat device
+    public static final ThingTypeUID THING_TYPE_BUS_THERMOSTAT = new ThingTypeUID(BINDING_ID, "bus_thermostat");
+    public static final String THING_LABEL_BUS_THERMOSTAT = "Thermostat";
+
     // ZIGBEE
     public static final ThingTypeUID THING_TYPE_ZB_ON_OFF_SWITCH = new ThingTypeUID(BINDING_ID, "zb_on_off_switch");
     public static final String THING_LABEL_ZB_ON_OFF_SWITCH = "ZigBee Switch";
@@ -76,6 +80,10 @@ public class OpenWebNetBindingConstants {
     public static final Set<ThingTypeUID> AUTOMATION_SUPPORTED_THING_TYPES = new HashSet<>(
             Arrays.asList(THING_TYPE_ZB_AUTOMATION, THING_TYPE_BUS_AUTOMATION));
 
+    // ## Thermoregulation
+    public static final Set<ThingTypeUID> THERMOREGULATION_SUPPORTED_THING_TYPES = new HashSet<>(
+            Arrays.asList(THING_TYPE_BUS_THERMOSTAT));
+
     // ## Groups
     public static final Set<ThingTypeUID> DEVICE_SUPPORTED_THING_TYPES = Stream
             .of(LIGHTING_SUPPORTED_THING_TYPES, AUTOMATION_SUPPORTED_THING_TYPES, GENERIC_SUPPORTED_THING_TYPES)
@@ -96,6 +104,21 @@ public class OpenWebNetBindingConstants {
     public static final String CHANNEL_BRIGHTNESS = "brightness";
     // automation
     public static final String CHANNEL_SHUTTER = "shutter";
+
+    // thermoregulation properties
+    public static final String CHANNEL_TEMPERATURE = "temperature";
+    public static final String CHANNEL_TEMP_TARGET = "targetTemperature";
+    public static final String CHANNEL_THERMO_FUNCTION = "thermoFunction";
+    public static final String CHANNEL_HEATING_COOLING_MODE = "heatingCoolingMode";
+    public static final String CHANNEL_HEATING = "heating";
+    public static final String CHANNEL_COOLING = "cooling";
+    public static final String CHANNEL_ACTIVE_MODE = "activeMode";
+    public static final String CHANNEL_LOCAL_MODE = "localMode";
+    public static final String CHANNEL_TEMP_SETPOINT = "setpointTemperature";
+    public static final String CHANNEL_SET_MODE = "setMode";
+    public static final String CHANNEL_ALL_TEMP_SETPOINT = "allSetpointTemperature";
+    public static final String CHANNEL_ALL_SET_MODE = "allSetMode";
+    public static final String CHANNEL_ALL_THERMO_FUNCTION = "allThermoFunction";
 
     // devices config properties
     public static final String CONFIG_PROPERTY_WHERE = "where";

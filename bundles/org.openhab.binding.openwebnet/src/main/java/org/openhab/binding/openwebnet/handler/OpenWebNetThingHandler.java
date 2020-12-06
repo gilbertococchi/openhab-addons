@@ -14,12 +14,17 @@ package org.openhab.binding.openwebnet.handler;
 
 import static org.openhab.binding.openwebnet.OpenWebNetBindingConstants.*;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.measure.Quantity;
+import javax.measure.Unit;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -219,4 +224,11 @@ public abstract class OpenWebNetThingHandler extends BaseThingHandler {
      * @return
      */
     protected abstract String ownIdPrefix();
+
+    protected <U extends Quantity<U>> QuantityType<U> commandToQuantityType(Command command, Unit<U> defaultUnit) {
+        if (command instanceof QuantityType<?>) {
+            return ((QuantityType<U>) command);
+        }
+        return new QuantityType<U>(new BigDecimal(command.toString()), defaultUnit);
+    }
 }
