@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2019 Contributors to the openHAB project
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -23,10 +23,9 @@ import javax.measure.quantity.Temperature;
 import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.binding.openwebnet.OpenWebNetBindingConstants;
 import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.library.unit.SIUnits.CELSIUS;
+import org.openhab.core.library.unit.SIUnits;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -35,6 +34,8 @@ import org.openhab.core.types.UnDefType;
 import org.openwebnet4j.communication.OWNException;
 import org.openwebnet4j.communication.Response;
 import org.openwebnet4j.message.BaseOpenMessage;
+import org.openwebnet4j.message.FrameException;
+import org.openwebnet4j.message.MalformedFrameException;
 import org.openwebnet4j.message.Thermoregulation;
 import org.openwebnet4j.message.Where;
 import org.slf4j.Logger;
@@ -142,7 +143,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     private void handleSetpointCommand(Command command) {
         logger.debug("==OWN:ThermoHandler== handleSetpointCommand() (command={})", command);
-        Unit<Temperature> unit = CELSIUS;
+        Unit<Temperature> unit = SIUnits.CELSIUS;
         if (command instanceof QuantityType || command instanceof DecimalType) {
             BigDecimal value;
             if (command instanceof QuantityType) {
@@ -153,14 +154,19 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             }
             // TODO check setPoint is inside OWN range (5-40) and check it's int or x.5 decimal, if not, round to
             // nearest x.0/x.5. Or better make it a control at lib level
-            Response ses = bridgeHandler.gateway.send(
-                    Thermoregulation.requestWriteSetpointTemperature(deviceWhere.value(), value.doubleValue(), currentSetMode));
 
-            if (ses.getFinalResponse().isNACK()) {
-                logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
-                // using WHERE=N fails, let'use zone by central unit WHERE=#N
-                bridgeHandler.gateway
-                        .send(Thermoregulation.requestWriteSetpoint("#" + deviceWhere, value.doubleValue()));
+            Response ses;
+            try {
+                ses = bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(deviceWhere.value(),
+                        value.doubleValue(), currentSetMode.toString()));
+                if (ses.getFinalResponse().isNACK()) {
+                    logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
+                    // TODO using WHERE=N fails, let'use zone by central unit WHERE=#N
+                }
+            } catch (MalformedFrameException | OWNException e) {
+                // TODO Auto-generated catch block
+                logger.warn("==OWN:ThermoHandler== handleSetpointCommand() got Exception on frame {}: {}", command,
+                        e.getMessage());
             }
         } else {
             logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command, getThing().getUID());
@@ -182,7 +188,8 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             }
             logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
             if (modeWhat != null) {
-                bridgeHandler.gateway.send(Thermoregulation.requestSetMode("#" + deviceWhere, modeWhat));
+                // TODO support requestSetMode
+                // bridgeHandler.gateway.send(Thermoregulation.requestSetMode("#" + deviceWhere, modeWhat));
             } else {
                 logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command,
                         getThing().getUID());
@@ -194,38 +201,31 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     @Override
     protected String ownIdPrefix() {
-        return org.openwebnet.message.Who.THERMOREGULATION.value().toString();
+        return org.openwebnet4j.message.Who.THERMOREGULATION.value().toString();
     }
 
     @Override
     protected void handleMessage(BaseOpenMessage msg) {
         super.handleMessage(msg);
+
         if (msg.isCommand()) {
             updateMode((Thermoregulation) msg);
         } else {
-            switch (msg.getDim()) {
-                case Thermoregulation.DIM_TEMPERATURE:
-                case Thermoregulation.DIM_PROBE_TEMPERATURE:
-                    updateTemperature((Thermoregulation) msg);
-                    break;
-                case Thermoregulation.DIM_TEMP_SETPOINT:
-                    updateSetpoint((Thermoregulation) msg);
-                    break;
-                case Thermoregulation.DIM_OFFSET:
-                    updateLocalMode((Thermoregulation) msg);
-                    break;
-                case Thermoregulation.DIM_ACTUATOR_STATUS:
-                    updateActuatorStatus((Thermoregulation) msg);
-                    break;
-                case Thermoregulation.DIM_TEMP_TARGET:
-                    updateTargetTemp((Thermoregulation) msg);
-                    break;
-                default:
-                    logger.debug(
-                            "==OWN:ThermoHandler== handleMessage() Ignoring unsupported DIM for thing {}. Frame={}",
-                            getThing().getUID(), msg);
-                    break;
+            int messageDim = msg.getDim().value();
+
+            if (messageDim == Thermoregulation.DIM.TEMPERATURE.value()
+                    || messageDim == Thermoregulation.DIM.PROBE_TEMPERATURE.value()) {
+                updateTemperature((Thermoregulation) msg);
+            } else if (messageDim == Thermoregulation.DIM.TEMP_SETPOINT.value()) {
+                updateSetpoint((Thermoregulation) msg);
+            } else if (messageDim == Thermoregulation.DIM.TEMP_TARGET.value()) {
+                updateTargetTemp((Thermoregulation) msg);
+            } else {
+                logger.debug("==OWN:ThermoHandler== handleMessage() Ignoring unsupported DIM for thing {}. Frame={}",
+                        getThing().getUID(), msg);
             }
+            // TODO Offset Local Mode
+            // TODO Actuator Status
         }
     }
 
@@ -234,12 +234,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Thermoregulation.WHAT w = (Thermoregulation.WHAT) tmsg.getWhat();
         Mode newMode = whatToMode(w);
         if (newMode != null) {
-            if (tmsg.isFromCentralUnit()) {
-                updateSetMode(newMode);
-            }
-            // else {
             updateActiveMode(newMode);
-            // }
         } else {
             logger.debug("==OWN:ThermoHandler== updateMode() mode not processed: msg={}", tmsg);
         }
@@ -300,13 +295,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         logger.debug("==OWN:ThermoHandler== updateSetMode() for thing: {}", thing.getUID());
         if (currentSetMode != mode) {
             currentSetMode = mode;
-            String channelID;
-            if (isCentralUnit) {
-                channelID = CHANNEL_ALL_SET_MODE;
-            } else {
-                channelID = CHANNEL_SET_MODE;
-            }
-            updateState(channelID, new StringType(currentSetMode.toString()));
+            updateState(CHANNEL_SET_MODE, new StringType(currentSetMode.toString()));
         }
     }
 
@@ -324,7 +313,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         try {
             temp = Thermoregulation.parseTemperature(tmsg);
             updateState(CHANNEL_TEMPERATURE, new DecimalType(temp));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | FrameException e) {
             logger.warn("==OWN:ThermoHandler== updateTemperature() got Exception on frame {}: {}", tmsg,
                     e.getMessage());
             updateState(CHANNEL_TEMPERATURE, UnDefType.NULL);
@@ -333,48 +322,13 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     private void updateSetpoint(Thermoregulation tmsg) {
         logger.debug("==OWN:ThermoHandler== updateSetpoint() for thing: {}", thing.getUID());
-        String channelID;
-        if (isCentralUnit) {
-            channelID = CHANNEL_ALL_TEMP_SETPOINT;
-        } else {
-            channelID = CHANNEL_TEMP_SETPOINT;
-        }
         Double temp;
         try {
             temp = Thermoregulation.parseTemperature(tmsg);
-            updateState(channelID, new DecimalType(temp));
-        } catch (NumberFormatException e) {
+            updateState(CHANNEL_TEMP_SETPOINT, new DecimalType(temp));
+        } catch (NumberFormatException | FrameException e) {
             logger.warn("==OWN:ThermoHandler== updateSetpoint() got Exception on frame {}: {}", tmsg, e.getMessage());
-            updateState(channelID, UnDefType.NULL);
-        }
-    }
-
-    private void updateLocalMode(Thermoregulation msg) {
-        logger.debug("==OWN:ThermoHandler== updateLocalMode() for thing: {}", thing.getUID());
-        LOCAL_OFFSET newOffset = msg.getLocalOffset();
-        if (newOffset != null) {
-            localOffset = newOffset;
-            logger.debug("==OWN:ThermoHandler== updateLocalMode() new localMode={}", localOffset);
-            updateState(CHANNEL_LOCAL_MODE, new StringType(localOffset.getLabel()));
-        } else {
-            logger.warn("==OWN:ThermoHandler== updateLocalMode() unrecognized local offset: {}", msg);
-        }
-    }
-
-    private void updateActuatorStatus(Thermoregulation msg) {
-        logger.debug("==OWN:ThermoHandler== updateActuatorStatus() for thing: {}", thing.getUID());
-        int actuator = msg.getActuator();
-        if (actuator == 1) {
-            updateState(CHANNEL_HEATING,
-                    (msg.getActuatorStatus(actuator) == Thermoregulation.ACTUATOR_STATUS_ON ? OnOffType.ON
-                            : OnOffType.OFF));
-        } else if (actuator == 2) {
-            updateState(CHANNEL_COOLING,
-                    (msg.getActuatorStatus(actuator) == Thermoregulation.ACTUATOR_STATUS_ON ? OnOffType.ON
-                            : OnOffType.OFF));
-        } else {
-            logger.warn("==OWN:ThermoHandler== actuator number {} is not handled for thing: {}", actuator,
-                    thing.getUID());
+            updateState(CHANNEL_TEMP_SETPOINT, UnDefType.NULL);
         }
     }
 
@@ -384,7 +338,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         try {
             temp = Thermoregulation.parseTemperature(tmsg);
             updateState(CHANNEL_TEMP_TARGET, new DecimalType(temp));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | FrameException e) {
             logger.warn("==OWN:ThermoHandler== updateTargetTemp() got Exception on frame {}: {}", tmsg, e.getMessage());
             updateState(CHANNEL_TEMP_TARGET, UnDefType.NULL);
         }
