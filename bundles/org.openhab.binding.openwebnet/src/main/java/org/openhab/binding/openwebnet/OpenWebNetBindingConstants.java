@@ -86,7 +86,8 @@ public class OpenWebNetBindingConstants {
 
     // ## Groups
     public static final Set<ThingTypeUID> DEVICE_SUPPORTED_THING_TYPES = Stream
-            .of(LIGHTING_SUPPORTED_THING_TYPES, AUTOMATION_SUPPORTED_THING_TYPES, GENERIC_SUPPORTED_THING_TYPES)
+            .of(LIGHTING_SUPPORTED_THING_TYPES, AUTOMATION_SUPPORTED_THING_TYPES,
+                    THERMOREGULATION_SUPPORTED_THING_TYPES, GENERIC_SUPPORTED_THING_TYPES)
             .flatMap(Collection::stream).collect(Collectors.toCollection(HashSet::new));
 
     public static final Set<ThingTypeUID> BRIDGE_SUPPORTED_THING_TYPES = new HashSet<>(
