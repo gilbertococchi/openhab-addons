@@ -444,4 +444,4 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         super.thingUpdated(thing);
         logger.debug("==OWN:ThermoHandler== thingUpdated()");
     }
-} /* class */
+}
