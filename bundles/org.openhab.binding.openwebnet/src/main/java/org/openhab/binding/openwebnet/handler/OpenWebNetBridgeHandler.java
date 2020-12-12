@@ -49,6 +49,7 @@ import org.openwebnet4j.message.FrameException;
 import org.openwebnet4j.message.GatewayMgmt;
 import org.openwebnet4j.message.Lighting;
 import org.openwebnet4j.message.OpenMessage;
+import org.openwebnet4j.message.Thermoregulation;
 import org.openwebnet4j.message.What;
 import org.openwebnet4j.message.Where;
 import org.openwebnet4j.message.WhereThermo;
@@ -287,7 +288,9 @@ public class OpenWebNetBridgeHandler extends ConfigStatusBridgeHandler implement
             logger.warn("discoverByActivation: null OpenWebNetDeviceDiscoveryService, ignoring msg={}", baseMsg);
             return;
         }
-        if (baseMsg instanceof Lighting || baseMsg instanceof Automation) { // we support these types only
+
+        // TODO automatically update this list based on supported Things list
+        if (baseMsg instanceof Lighting || baseMsg instanceof Automation || baseMsg instanceof Thermoregulation) {
             BaseOpenMessage bmsg = baseMsg;
             if (baseMsg instanceof Lighting) {
                 What what = baseMsg.getWhat();
@@ -386,8 +389,10 @@ public class OpenWebNetBridgeHandler extends ConfigStatusBridgeHandler implement
         }
 
         BaseOpenMessage baseMsg = (BaseOpenMessage) msg;
+
+        // TODO improve IF with supported Things constant
         // let's try to get the Thing associated with this message...
-        if (baseMsg instanceof Lighting || baseMsg instanceof Automation) {
+        if (baseMsg instanceof Lighting || baseMsg instanceof Automation || baseMsg instanceof Thermoregulation) {
             String ownId = ownIdFromMessage(baseMsg);
             logger.debug("ownIdFromMessage({}) --> {}", baseMsg, ownId);
             OpenWebNetThingHandler deviceHandler = registeredDevices.get(ownId);

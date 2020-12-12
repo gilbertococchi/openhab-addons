@@ -113,9 +113,10 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Where w = deviceWhere;
         if (w != null) {
             try {
+                System.out.println("requestChannelState: " + w.value());
                 send(Thermoregulation.requestStatus(w.value()));
             } catch (OWNException e) {
-                logger.warn("requestStatus() Exception while requesting light state: {}", e.getMessage());
+                logger.warn("requestStatus() Exception while requesting thermostat state: {}", e.getMessage());
             }
         }
     }
@@ -189,7 +190,12 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
             if (modeWhat != null) {
                 // TODO support requestSetMode
-                // bridgeHandler.gateway.send(Thermoregulation.requestSetMode("#" + deviceWhere, modeWhat));
+                try {
+                    bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode("#" + deviceWhere, modeWhat));
+                } catch (MalformedFrameException | OWNException e) {
+                    logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
+                            getThing().getUID(), e.getMessage());
+                }
             } else {
                 logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command,
                         getThing().getUID());
@@ -207,6 +213,8 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     @Override
     protected void handleMessage(BaseOpenMessage msg) {
         super.handleMessage(msg);
+
+        System.out.println("handleMessage: " + msg);
 
         if (msg.isCommand()) {
             updateMode((Thermoregulation) msg);
@@ -251,16 +259,25 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             case MANUAL_CONDITIONING:
             case PROTECTION_CONDITIONING:
             case OFF_CONDITIONING:
+            case HOLIDAY_CONDITIONING:
+                newFunction = ThermoFunction.COOL;
+                break;
             case HEATING:
             case PROGRAM_HEATING:
             case MANUAL_HEATING:
             case PROTECTION_HEATING:
             case OFF_HEATING:
+            case HOLIDAY_HEATING:
+                newFunction = ThermoFunction.HEAT;
+                break;
             case GENERIC:
             case PROGRAM_GENERIC:
             case MANUAL_GENERIC:
             case PROTECTION_GENERIC:
             case OFF_GENERIC:
+            case HOLIDAY_GENERIC:
+                newFunction = ThermoFunction.GENERIC;
+                break;
         }
         if (thermoFunction != newFunction) {
             thermoFunction = newFunction;
