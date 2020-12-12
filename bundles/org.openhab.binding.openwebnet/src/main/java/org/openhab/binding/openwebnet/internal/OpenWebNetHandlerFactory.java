@@ -20,6 +20,7 @@ import org.openhab.binding.openwebnet.handler.OpenWebNetAutomationHandler;
 import org.openhab.binding.openwebnet.handler.OpenWebNetBridgeHandler;
 import org.openhab.binding.openwebnet.handler.OpenWebNetGenericHandler;
 import org.openhab.binding.openwebnet.handler.OpenWebNetLightingHandler;
+import org.openhab.binding.openwebnet.handler.OpenWebNetThermoregulationHandler;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
@@ -60,6 +61,9 @@ public class OpenWebNetHandlerFactory extends BaseThingHandlerFactory {
         } else if (OpenWebNetAutomationHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
             logger.debug("creating NEW AUTOMATION Handler");
             return new OpenWebNetAutomationHandler(thing);
+        } else if (OpenWebNetThermoregulationHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
+            logger.debug("creating NEW AUTOMATION Handler");
+            return new OpenWebNetThermoregulationHandler(thing);
         }
         logger.warn("ThingType {} is not supported by this binding", thing.getThingTypeUID());
         return null;
