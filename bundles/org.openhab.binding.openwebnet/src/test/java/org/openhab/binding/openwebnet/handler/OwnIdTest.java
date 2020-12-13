@@ -71,8 +71,8 @@ public class OwnIdTest {
         bus_switch(new WhereLightAutom("51"), Who.fromValue(1), "*1*1*51##", "51", "1.51", "51"),
         bus_localbus(new WhereLightAutom("25#4#01"), Who.fromValue(1), "*1*1*25#4#01##", "25h4h01", "1.25h4h01", "25h4h01"),
         bus_thermo_zone(new WhereThermo("1"), Who.fromValue(4),"*#4*1*0*0020##" , "1", "4.1", "1"),
-        bus_thermo_zone_act(new WhereThermo("2#1"), Who.fromValue(4),"*#4*2#1*20*0##" ,"2", "4.2", "2"),
-        bus_thermo_via_cu(new WhereThermo("#1"), Who.fromValue(4),"*#4*#1*0*0020##" ,"1", "4.1", "1");
+        bus_thermo_zone_actuator(new WhereThermo("2#1"), Who.fromValue(4),"*#4*2#1*20*0##" ,"2", "4.2", "2"),
+        bus_thermo_via_cunit(new WhereThermo("#1"), Who.fromValue(4),"*#4*#1*0*0020##" ,"1", "4.1", "1");
         // bus_tempSensor("500", "4", "500", "4.500", "500"),
         // bus_energy("51", "18", "51", "18.51", "51");
 
@@ -97,21 +97,21 @@ public class OwnIdTest {
             this.ownId = ownId;
             this.thingId = thingId;
         }
-
     }
 
     @Test
     public void testOwnId() {
         Bridge mockBridge = mock(Bridge.class);
         OpenWebNetBridgeHandler brH = new OpenWebNetBridgeHandler(mockBridge);
-
+        BaseOpenMessage bmsg;
         for (int i = 0; i < TEST.values().length; i++) {
             TEST test = TEST.values()[i];
-            // System.out.println("testing where=" + test.where);
+            logger.info("testing where={}", test.where);
             assertEquals(test.norm, brH.normalizeWhere(test.where));
             assertEquals(test.ownId, brH.ownIdFromWhoWhere(test.who, test.where));
-            if (test.msg != null) {
-                assertEquals(test.ownId, brH.ownIdFromMessage(test.msg));
+            bmsg = test.msg;
+            if (bmsg != null) {
+                assertEquals(test.ownId, brH.ownIdFromMessage(bmsg));
             }
             assertEquals(test.thingId, brH.thingIdFromWhere(test.where));
         }

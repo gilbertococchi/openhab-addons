@@ -52,7 +52,6 @@ import org.openwebnet4j.message.OpenMessage;
 import org.openwebnet4j.message.Thermoregulation;
 import org.openwebnet4j.message.What;
 import org.openwebnet4j.message.Where;
-import org.openwebnet4j.message.WhereThermo;
 import org.openwebnet4j.message.WhereZigBee;
 import org.openwebnet4j.message.Who;
 import org.slf4j.Logger;
@@ -571,9 +570,7 @@ public class OpenWebNetBridgeHandler extends ConfigStatusBridgeHandler implement
      */
     public String normalizeWhere(Where where) {
         String str = where.value();
-        if (where instanceof WhereThermo && str.indexOf('#') != -1) {
-            str = str.substring(0, str.indexOf('#'));
-        } else if (where instanceof WhereZigBee) {
+        if (where instanceof WhereZigBee) {
             str = ((WhereZigBee) where).valueWithUnit(WhereZigBee.UNIT_ALL); // 76543210X#9 --> 765432100#9
         } else {
             if (str.indexOf("#4#") == -1) { // skip APL#4#bus case

@@ -38,6 +38,7 @@ import org.openwebnet4j.message.FrameException;
 import org.openwebnet4j.message.MalformedFrameException;
 import org.openwebnet4j.message.Thermoregulation;
 import org.openwebnet4j.message.Where;
+import org.openwebnet4j.message.WhereThermo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -437,6 +438,11 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 break;
         }
         return newWhat;
+    }
+
+    @Override
+    protected Where buildBusWhere(String wStr) throws IllegalArgumentException {
+        return new WhereThermo(wStr);
     }
 
     @Override
