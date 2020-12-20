@@ -114,6 +114,25 @@
 			</options>
 		</state>
 	</channel-type>
+	
+	<channel-type id="localMode">
+        <item-type>String</item-type>
+        <label>Local Mode</label>
+        <description>Local mode of the thermostat (read only)</description>
+        <state readOnly="true" >
+            <options>
+                <option value="3">+3</option>
+                <option value="2">+2</option>
+                <option value="1">+1</option>
+                <option value="NORMAL">Normal</option>
+                <option value="-1">-1</option>
+                <option value="-2">-2</option>
+                <option value="-3">-3</option>
+                <option value="PROTECTION">Protection</option>
+                <option value="OFF">Off</option>
+            </options>
+        </state>
+    </channel-type>
 
 	<channel-type id="setpointTemperature">
 		<item-type>Number:Temperature</item-type>
