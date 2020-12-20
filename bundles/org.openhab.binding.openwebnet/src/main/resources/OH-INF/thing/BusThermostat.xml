@@ -21,7 +21,7 @@
 			<channel id="heating" typeId="heating"/>
 			<channel id="cooling" typeId="cooling"/>
 			<channel id="activeMode" typeId="activeMode"/>
-			<!-- <channel id="localMode" typeId="localMode"/> -->
+			<channel id="localMode" typeId="localMode"/>
 			<!-- read/write -->
 			<channel id="setpointTemperature" typeId="setpointTemperature"/>
 			<channel id="setMode" typeId="setMode"/>

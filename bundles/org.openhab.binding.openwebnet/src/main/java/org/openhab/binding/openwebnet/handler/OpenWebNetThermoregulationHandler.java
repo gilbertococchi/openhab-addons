@@ -21,8 +21,11 @@ import javax.measure.Unit;
 import javax.measure.quantity.Temperature;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.openwebnet.OpenWebNetBindingConstants;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.SIUnits;
@@ -30,6 +33,7 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.UnDefType;
 import org.openwebnet4j.communication.OWNException;
 import org.openwebnet4j.communication.Response;
@@ -37,6 +41,7 @@ import org.openwebnet4j.message.BaseOpenMessage;
 import org.openwebnet4j.message.FrameException;
 import org.openwebnet4j.message.MalformedFrameException;
 import org.openwebnet4j.message.Thermoregulation;
+import org.openwebnet4j.message.Thermoregulation.LOCAL_OFFSET;
 import org.openwebnet4j.message.Where;
 import org.openwebnet4j.message.WhereThermo;
 import org.slf4j.Logger;
@@ -47,8 +52,9 @@ import org.slf4j.LoggerFactory;
  * OpenWebNet device. It extends the abstract {@link OpenWebNetThingHandler}.
  *
  * @author Massimo Valla - Initial contribution
- * @author Gilberto Cocchi
+ * @author Gilberto Cocchi - Contributor
  */
+@NonNullByDefault
 public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(OpenWebNetThermoregulationHandler.class);
@@ -95,6 +101,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private Mode currentSetMode = Mode.UNKNOWN;
     private Mode currentActiveMode = Mode.UNKNOWN;
     private ThermoFunction thermoFunction = ThermoFunction.UNKNOWN;
+    private Thermoregulation.LOCAL_OFFSET localOffset = Thermoregulation.LOCAL_OFFSET.NORMAL;
 
     public OpenWebNetThermoregulationHandler(@NonNull Thing thing) {
         super(thing);
@@ -114,7 +121,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Where w = deviceWhere;
         if (w != null) {
             try {
-                System.out.println("requestChannelState: " + w.value());
                 send(Thermoregulation.requestStatus(w.value()));
             } catch (OWNException e) {
                 logger.warn("requestStatus() Exception while requesting thermostat state: {}", e.getMessage());
@@ -176,9 +182,20 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         }
     }
 
+    @SuppressWarnings("null")
     private void handleModeCommand(Command command) {
         logger.debug("==OWN:ThermoHandler== handleModeCommand() (command={})", command);
-        if (command instanceof StringType) {
+
+        if (command instanceof RefreshType) {
+            if (deviceWhere != null) {
+                try {
+                    bridgeHandler.gateway.send(Thermoregulation.requestStatus(deviceWhere.value()));
+                } catch (OWNException e) {
+                    logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
+                            getThing().getUID(), e.getMessage());
+                }
+            }
+        } else if (command instanceof StringType) {
             Thermoregulation.WHAT modeWhat = null;
             try {
                 Mode mode = Mode.valueOf(((StringType) command).toString());
@@ -189,8 +206,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 return;
             }
             logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
-            if (modeWhat != null) {
-                // TODO support requestSetMode
+            if (modeWhat != null && deviceWhere != null) {
                 try {
                     bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode("#" + deviceWhere, modeWhat));
                 } catch (MalformedFrameException | OWNException e) {
@@ -215,8 +231,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     protected void handleMessage(BaseOpenMessage msg) {
         super.handleMessage(msg);
 
-        System.out.println("handleMessage: " + msg);
-
         if (msg.isCommand()) {
             updateMode((Thermoregulation) msg);
         } else {
@@ -229,12 +243,14 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 updateSetpoint((Thermoregulation) msg);
             } else if (messageDim == Thermoregulation.DIM.TEMP_TARGET.value()) {
                 updateTargetTemp((Thermoregulation) msg);
+            } else if (messageDim == Thermoregulation.DIM.OFFSET.value()) {
+                updateLocalMode((Thermoregulation) msg);
+            } else if (messageDim == Thermoregulation.DIM.ACTUATOR_STATUS.value()) {
+                updateActuatorStatus((Thermoregulation) msg);
             } else {
                 logger.debug("==OWN:ThermoHandler== handleMessage() Ignoring unsupported DIM for thing {}. Frame={}",
                         getThing().getUID(), msg);
             }
-            // TODO Offset Local Mode
-            // TODO Actuator Status
         }
     }
 
@@ -280,7 +296,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 newFunction = ThermoFunction.GENERIC;
                 break;
         }
-        if (thermoFunction != newFunction) {
+        if (newFunction != null && thermoFunction != newFunction) {
             thermoFunction = newFunction;
             updateState(CHANNEL_THERMO_FUNCTION, new StringType(thermoFunction.toString()));
         }
@@ -306,14 +322,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                     updateState(CHANNEL_HEATING_COOLING_MODE, UnDefType.NULL);
                     break;
             }
-        }
-    }
-
-    private void updateSetMode(Mode mode) {
-        logger.debug("==OWN:ThermoHandler== updateSetMode() for thing: {}", thing.getUID());
-        if (currentSetMode != mode) {
-            currentSetMode = mode;
-            updateState(CHANNEL_SET_MODE, new StringType(currentSetMode.toString()));
         }
     }
 
@@ -350,6 +358,24 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         }
     }
 
+    private void updateLocalMode(Thermoregulation msg) {
+        logger.debug("==OWN:ThermoHandler== updateLocalMode() for thing: {}", thing.getUID());
+        LOCAL_OFFSET newOffset;
+        try {
+            newOffset = msg.getLocalOffset();
+            if (newOffset != null) {
+                localOffset = newOffset;
+                logger.debug("==OWN:ThermoHandler== updateLocalMode() new localMode={}", localOffset);
+                updateState(CHANNEL_LOCAL_MODE, new StringType(localOffset.getLabel()));
+            } else {
+                logger.warn("==OWN:ThermoHandler== updateLocalMode() unrecognized local offset: {}", msg);
+            }
+        } catch (FrameException e) {
+            logger.warn("==OWN:ThermoHandler== updateLocalMode() got FrameException on frame {}: {}", msg,
+                    e.getMessage());
+        }
+    }
+
     private void updateTargetTemp(Thermoregulation tmsg) {
         logger.debug("==OWN:ThermoHandler== updateTargetTemp() for thing: {}", thing.getUID());
         Double temp;
@@ -362,7 +388,30 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         }
     }
 
-    private static Mode whatToMode(Thermoregulation.WHAT w) {
+    private void updateActuatorStatus(Thermoregulation msg) {
+        logger.debug("==OWN:ThermoHandler== updateActuatorStatus() for thing: {}", thing.getUID());
+        int actuator = msg.getActuator();
+
+        try {
+            if (actuator == 1) {
+                updateState(CHANNEL_HEATING,
+                        (msg.getActuatorStatus(actuator) == Thermoregulation.ACTUATOR.STATUS_ON.value() ? OnOffType.ON
+                                : OnOffType.OFF));
+            } else if (actuator == 2) {
+                updateState(CHANNEL_COOLING,
+                        (msg.getActuatorStatus(actuator) == Thermoregulation.ACTUATOR.STATUS_ON.value() ? OnOffType.ON
+                                : OnOffType.OFF));
+            } else {
+                logger.warn("==OWN:ThermoHandler== actuator number {} is not handled for thing: {}", actuator,
+                        thing.getUID());
+            }
+        } catch (FrameException e) {
+            logger.warn("==OWN:ThermoHandler== updateActuatorStatus() got Exception on frame {}: {}", msg,
+                    e.getMessage());
+        }
+    }
+
+    private static @Nullable Mode whatToMode(Thermoregulation.WHAT w) {
         Mode m = null;
         switch (w) {
             case PROGRAM_HEATING:
@@ -397,7 +446,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         return m;
     }
 
-    private Thermoregulation.WHAT modeToWhat(Mode m) {
+    private Thermoregulation.@Nullable WHAT modeToWhat(Mode m) {
         Thermoregulation.WHAT newWhat = null;
         switch (m) {
             case AUTO:
