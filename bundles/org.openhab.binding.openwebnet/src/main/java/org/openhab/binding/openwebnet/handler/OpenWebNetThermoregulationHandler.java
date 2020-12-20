@@ -33,7 +33,6 @@ import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.UnDefType;
 import org.openwebnet4j.communication.OWNException;
 import org.openwebnet4j.communication.Response;
@@ -121,7 +120,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Where w = deviceWhere;
         if (w != null) {
             try {
-                send(Thermoregulation.requestStatus(w.value()));
+                bridgeHandler.gateway.send(Thermoregulation.requestStatus(w.value()));
             } catch (OWNException e) {
                 logger.warn("requestStatus() Exception while requesting thermostat state: {}", e.getMessage());
             }
@@ -186,16 +185,9 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private void handleModeCommand(Command command) {
         logger.debug("==OWN:ThermoHandler== handleModeCommand() (command={})", command);
 
-        if (command instanceof RefreshType) {
-            if (deviceWhere != null) {
-                try {
-                    bridgeHandler.gateway.send(Thermoregulation.requestStatus(deviceWhere.value()));
-                } catch (OWNException e) {
-                    logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
-                            getThing().getUID(), e.getMessage());
-                }
-            }
-        } else if (command instanceof StringType) {
+        // TODO handle RefreshType command
+
+        if (command instanceof StringType) {
             Thermoregulation.WHAT modeWhat = null;
             try {
                 Mode mode = Mode.valueOf(((StringType) command).toString());
