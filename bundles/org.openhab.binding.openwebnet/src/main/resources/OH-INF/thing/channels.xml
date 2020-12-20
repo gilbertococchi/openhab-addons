@@ -148,10 +148,9 @@
 	<channel-type id="setMode">
 		<item-type>String</item-type>
 		<label>Set Mode</label>
-		<description>Set mode of the thermostat from Central Unit/openHAB (read/write)</description>
+		<description>Set mode of the thermostat (read/write)</description>
 		<state>
 			<options>
-				<option value="AUTO">Auto</option>
 				<option value="MANUAL">Manual</option>
 				<option value="PROTECTION">Protection</option>
 				<option value="OFF">Off</option>

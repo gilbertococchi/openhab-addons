@@ -61,7 +61,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private enum Mode {
         // TODO make it a single map and integrate it with Thermoregulation.WHAT to have automatic translation
         UNKNOWN("UNKNOWN"),
-        AUTO("AUTO"),
         MANUAL("MANUAL"),
         PROTECTION("PROTECTION"),
         OFF("OFF");
@@ -264,27 +263,21 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         ThermoFunction newFunction = null;
         switch (what) {
             case CONDITIONING:
-            case PROGRAM_CONDITIONING:
             case MANUAL_CONDITIONING:
             case PROTECTION_CONDITIONING:
             case OFF_CONDITIONING:
-            case HOLIDAY_CONDITIONING:
                 newFunction = ThermoFunction.COOL;
                 break;
             case HEATING:
-            case PROGRAM_HEATING:
             case MANUAL_HEATING:
             case PROTECTION_HEATING:
             case OFF_HEATING:
-            case HOLIDAY_HEATING:
                 newFunction = ThermoFunction.HEAT;
                 break;
             case GENERIC:
-            case PROGRAM_GENERIC:
             case MANUAL_GENERIC:
             case PROTECTION_GENERIC:
             case OFF_GENERIC:
-            case HOLIDAY_GENERIC:
                 newFunction = ThermoFunction.GENERIC;
                 break;
         }
@@ -406,11 +399,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private static @Nullable Mode whatToMode(Thermoregulation.WHAT w) {
         Mode m = null;
         switch (w) {
-            case PROGRAM_HEATING:
-            case PROGRAM_CONDITIONING:
-            case PROGRAM_GENERIC:
-                m = Mode.AUTO;
-                break;
             case MANUAL_HEATING:
             case MANUAL_CONDITIONING:
             case MANUAL_GENERIC:
@@ -441,15 +429,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private Thermoregulation.@Nullable WHAT modeToWhat(Mode m) {
         Thermoregulation.WHAT newWhat = null;
         switch (m) {
-            case AUTO:
-                if (thermoFunction == ThermoFunction.GENERIC) {
-                    newWhat = Thermoregulation.WHAT.PROGRAM_GENERIC;
-                } else if (thermoFunction == ThermoFunction.COOL) {
-                    newWhat = Thermoregulation.WHAT.PROGRAM_CONDITIONING;
-                } else {
-                    newWhat = Thermoregulation.WHAT.PROGRAM_HEATING;
-                }
-                break;
             case MANUAL:
                 if (thermoFunction == ThermoFunction.GENERIC) {
                     newWhat = Thermoregulation.WHAT.MANUAL_GENERIC;
