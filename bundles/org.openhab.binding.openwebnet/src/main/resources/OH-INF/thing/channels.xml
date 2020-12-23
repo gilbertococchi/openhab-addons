@@ -107,7 +107,6 @@
 		<description>Current operation mode (active mode) of the thermostat (read only)</description>
 		<state readOnly="true">
 			<options>
-				<option value="AUTO">Auto</option>
 				<option value="MANUAL">Manual</option>
 				<option value="PROTECTION">Protection</option>
 				<option value="OFF">Off</option>

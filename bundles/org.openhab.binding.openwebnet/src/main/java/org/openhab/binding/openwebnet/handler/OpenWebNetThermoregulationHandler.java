@@ -250,6 +250,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Thermoregulation.WHAT w = (Thermoregulation.WHAT) tmsg.getWhat();
         Mode newMode = whatToMode(w);
         if (newMode != null) {
+            updateSetMode(newMode);
             updateActiveMode(newMode);
         } else {
             logger.debug("==OWN:ThermoHandler== updateMode() mode not processed: msg={}", tmsg);
@@ -307,6 +308,16 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                     updateState(CHANNEL_HEATING_COOLING_MODE, UnDefType.NULL);
                     break;
             }
+        }
+    }
+
+    private void updateSetMode(Mode mode) {
+        logger.debug("==OWN:ThermoHandler== updateSetMode() for thing: {}", thing.getUID());
+        if (currentSetMode != mode) {
+            currentSetMode = mode;
+            String channelID;
+            channelID = CHANNEL_SET_MODE;
+            updateState(channelID, new StringType(currentSetMode.toString()));
         }
     }
 
@@ -415,10 +426,12 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 m = Mode.OFF;
                 break;
             case CONDITIONING:
+                m = Mode.MANUAL;
                 break;
             case GENERIC:
                 break;
             case HEATING:
+                m = Mode.MANUAL;
                 break;
             default:
                 break;
