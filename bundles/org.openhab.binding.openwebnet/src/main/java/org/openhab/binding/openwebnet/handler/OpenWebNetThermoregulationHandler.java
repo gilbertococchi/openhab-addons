@@ -199,7 +199,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
             if (modeWhat != null && deviceWhere != null) {
                 try {
-                    bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode("#" + deviceWhere, modeWhat));
+                    bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode(deviceWhere.value(), modeWhat));
                 } catch (MalformedFrameException | OWNException e) {
                     logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
                             getThing().getUID(), e.getMessage());
