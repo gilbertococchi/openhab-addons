@@ -20,8 +20,6 @@ import java.util.Set;
 import javax.measure.Unit;
 import javax.measure.quantity.Temperature;
 
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.openwebnet.OpenWebNetBindingConstants;
 import org.openhab.core.library.types.DecimalType;
@@ -53,7 +51,6 @@ import org.slf4j.LoggerFactory;
  * @author Massimo Valla - Initial contribution
  * @author Gilberto Cocchi - Contributor
  */
-@NonNullByDefault
 public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(OpenWebNetThermoregulationHandler.class);
@@ -80,8 +77,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private enum ThermoFunction {
         UNKNOWN(-1),
         COOL(0),
-        HEAT(1),
-        GENERIC(3);
+        HEAT(1);
 
         private final int function;
 
@@ -98,10 +94,13 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     private Mode currentSetMode = Mode.UNKNOWN;
     private Mode currentActiveMode = Mode.UNKNOWN;
+    private Double currentSetPoint = Double.NaN;
     private ThermoFunction thermoFunction = ThermoFunction.UNKNOWN;
     private Thermoregulation.LOCAL_OFFSET localOffset = Thermoregulation.LOCAL_OFFSET.NORMAL;
+    private Command callbackCommand;
+    private String callbackChannelType;
 
-    public OpenWebNetThermoregulationHandler(@NonNull Thing thing) {
+    public OpenWebNetThermoregulationHandler(Thing thing) {
         super(thing);
         logger.debug("==OWN:ThermoHandler== constructor");
     }
@@ -128,17 +127,19 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
     @Override
     protected void handleChannelCommand(ChannelUID channelUID, Command command) {
-        switch (channelUID.getId()) {
-            case CHANNEL_ALL_TEMP_SETPOINT:
+        handleChannelCommand(command, channelUID.getId());
+    }
+
+    protected void handleChannelCommand(Command command, String channelType) {
+        switch (channelType) {
             case CHANNEL_TEMP_SETPOINT:
                 handleSetpointCommand(command);
                 break;
-            case CHANNEL_ALL_SET_MODE:
             case CHANNEL_SET_MODE:
                 handleModeCommand(command);
                 break;
             default: {
-                logger.warn("==OWN:ThermoHandler== Unsupported ChannelUID {}", channelUID);
+                logger.warn("==OWN:ThermoHandler== Unsupported ChannelUID {}", channelType);
             }
         }
         // TODO if communication with thing fails for some reason,
@@ -150,6 +151,20 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private void handleSetpointCommand(Command command) {
         logger.debug("==OWN:ThermoHandler== handleSetpointCommand() (command={})", command);
         Unit<Temperature> unit = SIUnits.CELSIUS;
+
+        if (thermoFunction == ThermoFunction.UNKNOWN) {
+            logger.warn("==OWN:ThermoHandler== Cannot handle handleSetpointCommand(), thermoFunction is null");
+            try {
+                callbackCommand = command;
+                callbackChannelType = CHANNEL_TEMP_SETPOINT;
+                bridgeHandler.gateway.send(Thermoregulation.requestStatus(deviceWhere.value()));
+            } catch (OWNException e) {
+                logger.warn("==OWN:ThermoHandler== requestActuatorStatus() got Exception on frame {}: {}", command,
+                        e.getMessage());
+            }
+            return;
+        }
+
         if (command instanceof QuantityType || command instanceof DecimalType) {
             BigDecimal value;
             if (command instanceof QuantityType) {
@@ -158,19 +173,19 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             } else {
                 value = ((DecimalType) command).toBigDecimal();
             }
-            // TODO check setPoint is inside OWN range (5-40) and check it's int or x.5 decimal, if not, round to
-            // nearest x.0/x.5. Or better make it a control at lib level
+
+            currentSetPoint = value.doubleValue();
 
             Response ses;
             try {
-                ses = bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(deviceWhere.value(),
-                        value.doubleValue(), currentSetMode.toString()));
-                if (ses.getFinalResponse().isNACK()) {
-                    logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
-                    // TODO using WHERE=N fails, let'use zone by central unit WHERE=#N
+                if (deviceWhere != null && currentSetPoint != Double.NaN) {
+                    ses = bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(
+                            deviceWhere.value(), currentSetPoint, thermoFunction.getValue()));
+                    if (ses.getFinalResponse().isNACK()) {
+                        logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
+                    }
                 }
             } catch (MalformedFrameException | OWNException e) {
-                // TODO Auto-generated catch block
                 logger.warn("==OWN:ThermoHandler== handleSetpointCommand() got Exception on frame {}: {}", command,
                         e.getMessage());
             }
@@ -198,7 +213,10 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             }
             logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
             if (modeWhat != null && deviceWhere != null) {
+                logger.debug("==OWN:ThermoHandler== handleModeCommand() (currentSetPoint={})", currentSetPoint);
                 try {
+                    // bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(deviceWhere.value(),
+                    // currentSetPoint, modeWhat.value().toString()));
                     bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode(deviceWhere.value(), modeWhat));
                 } catch (MalformedFrameException | OWNException e) {
                     logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
@@ -236,6 +254,12 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 updateTargetTemp((Thermoregulation) msg);
             } else if (messageDim == Thermoregulation.DIM.OFFSET.value()) {
                 updateLocalMode((Thermoregulation) msg);
+                // This is the last message from getStatus, check for a callback to execute a previously saved command.
+                if (callbackCommand != null && callbackChannelType != null) {
+                    handleChannelCommand(callbackCommand, callbackChannelType);
+                    callbackCommand = null;
+                    callbackChannelType = null;
+                }
             } else if (messageDim == Thermoregulation.DIM.ACTUATOR_STATUS.value()) {
                 updateActuatorStatus((Thermoregulation) msg);
             } else {
@@ -275,12 +299,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             case OFF_HEATING:
                 newFunction = ThermoFunction.HEAT;
                 break;
-            case GENERIC:
-            case MANUAL_GENERIC:
-            case PROTECTION_GENERIC:
-            case OFF_GENERIC:
-                newFunction = ThermoFunction.GENERIC;
-                break;
         }
         if (newFunction != null && thermoFunction != newFunction) {
             thermoFunction = newFunction;
@@ -299,9 +317,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                     break;
                 case COOL:
                     updateState(CHANNEL_HEATING_COOLING_MODE, new StringType("cool"));
-                    break;
-                case GENERIC:
-                    updateState(CHANNEL_HEATING_COOLING_MODE, new StringType("heatcool"));
                     break;
                 case UNKNOWN:
                 default:
@@ -347,6 +362,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Double temp;
         try {
             temp = Thermoregulation.parseTemperature(tmsg);
+            currentSetPoint = (new DecimalType(temp)).doubleValue();
             updateState(CHANNEL_TEMP_SETPOINT, new DecimalType(temp));
         } catch (NumberFormatException | FrameException e) {
             logger.warn("==OWN:ThermoHandler== updateSetpoint() got Exception on frame {}: {}", tmsg, e.getMessage());
@@ -443,27 +459,21 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         Thermoregulation.WHAT newWhat = null;
         switch (m) {
             case MANUAL:
-                if (thermoFunction == ThermoFunction.GENERIC) {
-                    newWhat = Thermoregulation.WHAT.MANUAL_GENERIC;
-                } else if (thermoFunction == ThermoFunction.COOL) {
+                if (thermoFunction == ThermoFunction.COOL) {
                     newWhat = Thermoregulation.WHAT.MANUAL_CONDITIONING;
                 } else {
                     newWhat = Thermoregulation.WHAT.MANUAL_HEATING;
                 }
                 break;
             case PROTECTION:
-                if (thermoFunction == ThermoFunction.GENERIC) {
-                    newWhat = Thermoregulation.WHAT.PROTECTION_GENERIC;
-                } else if (thermoFunction == ThermoFunction.COOL) {
+                if (thermoFunction == ThermoFunction.COOL) {
                     newWhat = Thermoregulation.WHAT.PROTECTION_CONDITIONING;
                 } else {
                     newWhat = Thermoregulation.WHAT.PROTECTION_HEATING;
                 }
                 break;
             case OFF:
-                if (thermoFunction == ThermoFunction.GENERIC) {
-                    newWhat = Thermoregulation.WHAT.OFF_GENERIC;
-                } else if (thermoFunction == ThermoFunction.COOL) {
+                if (thermoFunction == ThermoFunction.COOL) {
                     newWhat = Thermoregulation.WHAT.OFF_CONDITIONING;
                 } else {
                     newWhat = Thermoregulation.WHAT.OFF_HEATING;
