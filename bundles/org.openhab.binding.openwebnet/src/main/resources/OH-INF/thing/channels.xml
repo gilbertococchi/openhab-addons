@@ -141,7 +141,7 @@
 		<tags>
 			<tag>TargetTemperature</tag>
 		</tags>
-		<state pattern="%.1f %unit%" step="0.5"/>
+		<state min="5" max="40" pattern="%.1f %unit%" step="0.5" readOnly="false"/>
 	</channel-type>
 
 	<channel-type id="setMode">
@@ -151,7 +151,6 @@
 		<state>
 			<options>
 				<option value="MANUAL">Manual</option>
-				<option value="PROTECTION">Protection</option>
 				<option value="OFF">Off</option>
 			</options>
 		</state>

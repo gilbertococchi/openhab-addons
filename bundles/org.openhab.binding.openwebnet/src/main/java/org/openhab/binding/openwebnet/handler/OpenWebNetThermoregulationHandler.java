@@ -90,6 +90,23 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         }
     }
 
+    // OperationMode mapping for SetPoint writing
+    private enum OperationMode {
+        HEATING(1),
+        COOLING(2),
+        GENERIC(3);
+
+        private final int function;
+
+        OperationMode(final int f) {
+            this.function = f;
+        }
+
+        public int getValue() {
+            return function;
+        }
+    }
+
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = OpenWebNetBindingConstants.THERMOREGULATION_SUPPORTED_THING_TYPES;
 
     private Mode currentSetMode = Mode.UNKNOWN;
@@ -179,8 +196,9 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             Response ses;
             try {
                 if (deviceWhere != null && currentSetPoint != Double.NaN) {
-                    ses = bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(
-                            deviceWhere.value(), currentSetPoint, thermoFunction.getValue()));
+                    Thermoregulation.MODE operationMode = getOperationMode(thermoFunction);
+                    ses = bridgeHandler.gateway.send(Thermoregulation
+                            .requestWriteSetpointTemperature(deviceWhere.value(), currentSetPoint, operationMode));
                     if (ses.getFinalResponse().isNACK()) {
                         logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
                     }
@@ -204,27 +222,40 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         if (command instanceof StringType) {
             Thermoregulation.WHAT modeWhat = null;
             try {
+
                 Mode mode = Mode.valueOf(((StringType) command).toString());
                 modeWhat = modeToWhat(mode);
+
+                logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
+                if (modeWhat != null && deviceWhere != null) {
+                    logger.debug("==OWN:ThermoHandler== handleModeCommand() (currentSetPoint={})", currentSetPoint);
+                    try {
+
+                        logger.debug("==OWN:ThermoHandler== handleModeCommand() with command {}",
+                                ((StringType) command).toString());
+
+                        if (((StringType) command).toString().equals("OFF")) {
+                            bridgeHandler.gateway.send(Thermoregulation.requestTurnOff(deviceWhere.value()));
+                        } else if (currentSetPoint != null) {
+                            // Use WriteSetPointTemperature method to change the ThermoFunction from Heating to Cooling
+                            // or vice versa
+                            Thermoregulation.MODE operationMode = getOperationMode(thermoFunction);
+                            bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(
+                                    deviceWhere.value(), currentSetPoint, operationMode));
+                        }
+                        // bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode(deviceWhere.value(),
+                        // modeWhat));
+                    } catch (MalformedFrameException | OWNException e) {
+                        logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}",
+                                command, getThing().getUID(), e.getMessage());
+                    }
+                } else {
+                    logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command,
+                            getThing().getUID());
+                }
             } catch (IllegalArgumentException e) {
                 logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
                         getThing().getUID(), e.getMessage());
-                return;
-            }
-            logger.debug("==OWN:ThermoHandler== handleModeCommand() modeWhat={}", modeWhat);
-            if (modeWhat != null && deviceWhere != null) {
-                logger.debug("==OWN:ThermoHandler== handleModeCommand() (currentSetPoint={})", currentSetPoint);
-                try {
-                    // bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(deviceWhere.value(),
-                    // currentSetPoint, modeWhat.value().toString()));
-                    bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode(deviceWhere.value(), modeWhat));
-                } catch (MalformedFrameException | OWNException e) {
-                    logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}", command,
-                            getThing().getUID(), e.getMessage());
-                }
-            } else {
-                logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command,
-                        getThing().getUID());
             }
         } else {
             logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command, getThing().getUID());
@@ -481,6 +512,22 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 break;
         }
         return newWhat;
+    }
+
+    private Thermoregulation.MODE getOperationMode(ThermoFunction thermoF) {
+        Thermoregulation.MODE operationMode = null;
+        switch (thermoF) {
+            case HEAT:
+                operationMode = Thermoregulation.MODE.HEATING;
+                break;
+            case COOL:
+                operationMode = Thermoregulation.MODE.CONDITIONING;
+                break;
+            default:
+                operationMode = Thermoregulation.MODE.GENERIC;
+                break;
+        }
+        return operationMode;
     }
 
     @Override
