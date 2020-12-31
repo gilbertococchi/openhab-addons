@@ -126,20 +126,14 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     public void initialize() {
         super.initialize();
         logger.debug("==OWN:ThermoHandler== initialize() thing={}", thing.getUID());
+        requestStatus();
     }
 
     @Override
     protected void requestChannelState(ChannelUID channel) {
-        logger.debug("==OWN:ThermoHandler== requestChannelState() thingUID={} channel={}", thing.getUID(),
-                channel.getId());
-        Where w = deviceWhere;
-        if (w != null) {
-            try {
-                bridgeHandler.gateway.send(Thermoregulation.requestStatus(w.value()));
-            } catch (OWNException e) {
-                logger.warn("requestStatus() Exception while requesting thermostat state: {}", e.getMessage());
-            }
-        }
+        logger.debug("==OWN:ThermoHandler== requestChannelState() thingUID={} channel={}, deviceWhere={}",
+                thing.getUID(), channel.getId(), deviceWhere);
+        requestStatus();
     }
 
     @Override
@@ -171,18 +165,10 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
         if (thermoFunction == ThermoFunction.UNKNOWN) {
             logger.warn("==OWN:ThermoHandler== Cannot handle handleSetpointCommand(), thermoFunction is null");
-            try {
-                callbackCommand = command;
-                callbackChannelType = CHANNEL_TEMP_SETPOINT;
-                bridgeHandler.gateway.send(Thermoregulation.requestStatus(deviceWhere.value()));
-            } catch (OWNException e) {
-                logger.warn("==OWN:ThermoHandler== requestActuatorStatus() got Exception on frame {}: {}", command,
-                        e.getMessage());
-            }
-            return;
-        }
-
-        if (command instanceof QuantityType || command instanceof DecimalType) {
+            callbackCommand = command;
+            callbackChannelType = CHANNEL_TEMP_SETPOINT;
+            requestStatus();
+        } else if (command instanceof QuantityType || command instanceof DecimalType) {
             BigDecimal value;
             if (command instanceof QuantityType) {
                 QuantityType<Temperature> quantity = commandToQuantityType(command, unit);
@@ -231,9 +217,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                     logger.debug("==OWN:ThermoHandler== handleModeCommand() (currentSetPoint={})", currentSetPoint);
                     try {
 
-                        logger.debug("==OWN:ThermoHandler== handleModeCommand() with command {}",
-                                ((StringType) command).toString());
-
                         if (((StringType) command).toString().equals("OFF")) {
                             bridgeHandler.gateway.send(Thermoregulation.requestTurnOff(deviceWhere.value()));
                         } else if (currentSetPoint != null) {
@@ -243,8 +226,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                             bridgeHandler.gateway.send(Thermoregulation.requestWriteSetpointTemperature(
                                     deviceWhere.value(), currentSetPoint, operationMode));
                         }
-                        // bridgeHandler.gateway.send(Thermoregulation.requestWriteSetMode(deviceWhere.value(),
-                        // modeWhat));
                     } catch (MalformedFrameException | OWNException e) {
                         logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}",
                                 command, getThing().getUID(), e.getMessage());
@@ -512,6 +493,17 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 break;
         }
         return newWhat;
+    }
+
+    protected void requestStatus() {
+        logger.debug("==OWN:ThermoHandler== requestStatus() for deviceWhere={}", deviceWhere);
+        if (deviceWhere != null) {
+            try {
+                bridgeHandler.gateway.send(Thermoregulation.requestStatus(deviceWhere.value()));
+            } catch (OWNException e) {
+                logger.warn("requestStatus() Exception while requesting thermostat state: {}", e.getMessage());
+            }
+        }
     }
 
     private Thermoregulation.MODE getOperationMode(ThermoFunction thermoF) {
