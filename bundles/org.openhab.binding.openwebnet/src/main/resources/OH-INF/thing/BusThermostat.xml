@@ -24,6 +24,7 @@
 			<channel id="localMode" typeId="localMode"/>
 			<!-- read/write -->
 			<channel id="setpointTemperature" typeId="setpointTemperature"/>
+			<channel id="setThermoFunction" typeId="setThermoFunction"/>
 			<channel id="setMode" typeId="setMode"/>
 		</channels>
 

@@ -65,7 +65,6 @@
 			<options>
 				<option value="COOL">COOL</option>
 				<option value="HEAT">HEAT</option>
-				<option value="GENERIC">GENERIC</option>
 			</options>
 		</state>
 	</channel-type>
@@ -87,18 +86,16 @@
 		</state>
 	</channel-type>
 
-	<channel-type id="heating" advanced="true">
-		<item-type>Switch</item-type>
-		<label>Heating Is</label>
-		<description>Heating is active (read only)</description>
-		<state readOnly="true"/>
-	</channel-type>
-
-	<channel-type id="cooling" advanced="true">
-		<item-type>Switch</item-type>
-		<label>Cooling Is</label>
-		<description>Cooling is active (read only)</description>
-		<state readOnly="true"/>
+	<channel-type id="setThermoFunction">
+		<item-type>String</item-type>
+		<label>Set Thermo Function</label>
+		<description>Set HeatingCoolingMode (read/write)</description>
+		<state>
+			<options>
+				<option value="HEAT">HEAT</option>
+				<option value="COOL">COOL</option>
+			</options>
+		</state>
 	</channel-type>
 
 	<channel-type id="activeMode">
