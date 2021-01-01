@@ -80,7 +80,6 @@
 			<options>
 				<option value="cool">cool</option>
 				<option value="heat">heat</option>
-				<option value="heatcool">heatcool</option>
 				<option value="off">off</option>
 			</options>
 		</state>
@@ -105,7 +104,6 @@
 		<state readOnly="true">
 			<options>
 				<option value="MANUAL">Manual</option>
-				<option value="PROTECTION">Protection</option>
 				<option value="OFF">Off</option>
 			</options>
 		</state>

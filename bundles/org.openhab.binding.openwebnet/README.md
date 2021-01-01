@@ -40,6 +40,7 @@ The following Things and OpenWebNet `WHOs` are supported:
 | Gateway Management   | `13`        | `bus_gateway`                            | Any IP gateway supporting OpenWebNet protocol should work (e.g. F454 / MyHOMEServer1 / MH202 / F455 / MH200N, ...) | Successfully tested: F454, MyHOMEServer1, MyHOME_Screen10, F455, F452, F453AV, MH201, MH202, MH200N. Some connection stability issues/gateway resets reported with MH202 |
 | Lighting             | `1`         | `bus_on_off_switch`, `bus_dimmer`   | BUS switches and dimmers                                       | Successfully tested: F411/2, F411/4, F411U2, F422, F429. Some discovery issues reported with F429 (DALI Dimmers)  |
 | Automation           | `2`         | `bus_automation`                        | BUS roller shutters, with position feedback and auto-calibration | Successfully tested: LN4672M2  |
+| Thermoregulation           | `4`         | `bus_thermostat`                        | BUS Thermostats (not controlled via Central Unit) with the following featured being supported: temperature, setPointTemperature, targetTemperature, Operation Mode (Manual/Off), Thermofunction mode (Heating or Cooling). | Successfully tested: LN4691  |
 
 ### For ZigBee (Radio)
 
@@ -133,6 +134,16 @@ Devices support some of the following channels:
 | `switch` or `switch_01`/`02` for ZigBee | Switch        | To switch the device `ON` and `OFF`                   |    R/W     |
 | `brightness`                               | Dimmer        | To adjust the brightness value (Percent, `ON`, `OFF`) |    R/W     |
 | `shutter`                                   | Rollershutter | To activate roller shutters (`UP`, `DOWN`, `STOP`, Percent - [see Shutter position](#shutter-position)) |    R/W     |
+| `temperature`                                   | Thermostat | To read the current temperature value in C° |    R     |
+| `targetTemperature`                                   | Thermostat | To read the target temperature value in C° |    R     |
+| `thermoFunction`                                   | Thermostat | to read the current thermo function (`HEAT`, `COOL`) |    R     |
+| `setThermoFunction`                                   | Thermostat | To set the current thermo function (`HEAT`, `COOL`) |    R/W     |
+| `heatingCoolingMode`                                   | Thermostat | To read heatingcolling mode (`HEAT`,`COOL`) |    R     |
+| `activeMode`                                   | Thermostat | To read the current active mode (`MANUAL`,`OFF`) |    R     |
+| `setMode`                                   | Thermostat | To set a new mode (`MANUAL`,`OFF`) |    R/W     |
+| `localMode`                                   | Thermostat | To read the local mode (`+3`,`+2`,`+1`,`NORMAL`,`-1`,`-2`,`-3`,`PROTECTION`,`OFF` |    R     |
+| `setpointTemperature`                                   | To set the set point temperature (values between 5.0 - 40 C° by 0.5 C° steps) |    R/W     |
+
 
 ### Notes on channels
 
@@ -158,6 +169,7 @@ Bridge openwebnet:bus_gateway:mybridge "MyHOMEServer1" [ host="192.168.1.35", pa
       bus_on_off_switch        LR_switch        "Living Room Light"     [ where="51" ]
       bus_dimmer               LR_dimmer        "Living Room Dimmer"    [ where="0311#4#01" ]
       bus_automation           LR_shutter       "Living Room Shutter"   [ where="93", shutterRun="10050"]
+      bus_automation           LR_thermostat      "Living Room Thermostat" [ where="1" ]
 }
 ```
 
