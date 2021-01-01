@@ -132,17 +132,17 @@ Devices support some of the following channels:
 | Channel Type ID (channel ID)                   | Item Type     | Description                                             | Read/Write |
 |------------------------------------------------|---------------|---------------------------------------------------------|:----------:|
 | `switch` or `switch_01`/`02` for ZigBee | Switch        | To switch the device `ON` and `OFF`                   |    R/W     |
-| `brightness`                               | Dimmer        | To adjust the brightness value (Percent, `ON`, `OFF`) |    R/W     |
-| `shutter`                                   | Rollershutter | To activate roller shutters (`UP`, `DOWN`, `STOP`, Percent - [see Shutter position](#shutter-position)) |    R/W     |
-| `temperature`                                   | Thermostat | To read the current temperature value in C° |    R     |
-| `targetTemperature`                                   | Thermostat | To read the target temperature value in C° |    R     |
-| `thermoFunction`                                   | Thermostat | to read the current thermo function (`HEAT`, `COOL`) |    R     |
-| `setThermoFunction`                                   | Thermostat | To set the current thermo function (`HEAT`, `COOL`) |    R/W     |
-| `heatingCoolingMode`                                   | Thermostat | To read heatingcolling mode (`HEAT`,`COOL`) |    R     |
-| `activeMode`                                   | Thermostat | To read the current active mode (`MANUAL`,`OFF`) |    R     |
-| `setMode`                                   | Thermostat | To set a new mode (`MANUAL`,`OFF`) |    R/W     |
-| `localMode`                                   | Thermostat | To read the local mode (`+3`,`+2`,`+1`,`NORMAL`,`-1`,`-2`,`-3`,`PROTECTION`,`OFF` |    R     |
-| `setpointTemperature`                                   | To set the set point temperature (values between 5.0 - 40 C° by 0.5 C° steps) |    R/W     |
+| `brightness`                         | Dimmer        | To adjust the brightness value (Percent, `ON`, `OFF`) |    R/W     |
+| `shutter`                           | Rollershutter | To activate roller shutters (`UP`, `DOWN`, `STOP`, Percent - [see Shutter position](#shutter-position)) |    R/W     |
+| `temperature`                        | Thermostat | To read the current temperature value in C° |    R     |
+| `targetTemperature`                    | Thermostat | To read the target temperature value in C° |    R     |
+| `thermoFunction`                      | Thermostat | to read the current thermo function (`HEAT`, `COOL`) |    R     |
+| `setThermoFunction`                    | Thermostat | To set the current thermo function (`HEAT`, `COOL`) |    R/W     |
+| `heatingCoolingMode`                   | Thermostat | To read heatingcolling mode (`HEAT`,`COOL`) |    R     |
+| `activeMode`                         | Thermostat | To read the current active mode (`MANUAL`,`OFF`) |    R     |
+| `setMode`                           | Thermostat | To set a new mode (`MANUAL`,`OFF`) |    R/W     |
+| `localMode`                       | Thermostat | To read the local mode (`+3`,`+2`,`+1`,`NORMAL`,`-1`,`-2`,`-3`,`PROTECTION`,`OFF` |    R   |
+| `setpointTemperature`                  | Thermostat | To set the set point temperature (values between 5.0 - 40 C° by 0.5 C° steps) |    R/W     |
 
 
 ### Notes on channels
@@ -169,7 +169,7 @@ Bridge openwebnet:bus_gateway:mybridge "MyHOMEServer1" [ host="192.168.1.35", pa
       bus_on_off_switch        LR_switch        "Living Room Light"     [ where="51" ]
       bus_dimmer               LR_dimmer        "Living Room Dimmer"    [ where="0311#4#01" ]
       bus_automation           LR_shutter       "Living Room Shutter"   [ where="93", shutterRun="10050"]
-      bus_automation           LR_thermostat      "Living Room Thermostat" [ where="1" ]
+      bus_thermostat           LR_thermostat      "Living Room Thermostat" [ where="1" ]
 }
 ```
 
