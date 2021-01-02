@@ -9,23 +9,17 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="bus_gateway"/>
 		</supported-bridge-type-refs>
+
 		<label>Thermostat</label>
 		<description>A OpenWebNet BUS/SCS zone thermostat. BTicino models: xxx/yyyy/etc.</description>
 
 		<channels>
 			<!-- read only -->
 			<channel id="temperature" typeId="temperature"/>
-			<channel id="targetTemperature" typeId="targetTemperature"/>
-			<channel id="thermoFunction" typeId="thermoFunction"/>
-			<channel id="heatingCoolingMode" typeId="heatingCoolingMode"/>
-			<channel id="heating" typeId="heating"/>
-			<channel id="cooling" typeId="cooling"/>
-			<channel id="activeMode" typeId="activeMode"/>
-			<channel id="localMode" typeId="localMode"/>
 			<!-- read/write -->
-			<channel id="setpointTemperature" typeId="setpointTemperature"/>
-			<channel id="setThermoFunction" typeId="setThermoFunction"/>
-			<channel id="setMode" typeId="setMode"/>
+			<channel id="operationMode" typeId="operationMode"/>
+			<channel id="thermoFunction" typeId="thermoFunction"/>
+			<channel id="setPointTemperature" typeId="setPointTemperature"/>
 		</channels>
 
 		<properties>

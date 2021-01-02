@@ -134,15 +134,16 @@ Devices support some of the following channels:
 | `switch` or `switch_01`/`02` for ZigBee | Switch        | To switch the device `ON` and `OFF`                   |    R/W     |
 | `brightness`                         | Dimmer        | To adjust the brightness value (Percent, `ON`, `OFF`) |    R/W     |
 | `shutter`                           | Rollershutter | To activate roller shutters (`UP`, `DOWN`, `STOP`, Percent - [see Shutter position](#shutter-position)) |    R/W     |
-| `temperature`                        | Thermostat | To read the current temperature value in C° |    R     |
-| `targetTemperature`                    | Thermostat | To read the target temperature value in C° |    R     |
-| `thermoFunction`                      | Thermostat | to read the current thermo function (`HEAT`, `COOL`) |    R     |
-| `setThermoFunction`                    | Thermostat | To set the current thermo function (`HEAT`, `COOL`) |    R/W     |
-| `heatingCoolingMode`                   | Thermostat | To read heatingcolling mode (`HEAT`,`COOL`) |    R     |
-| `activeMode`                         | Thermostat | To read the current active mode (`MANUAL`,`OFF`) |    R     |
-| `setMode`                           | Thermostat | To set a new mode (`MANUAL`,`OFF`) |    R/W     |
-| `localMode`                       | Thermostat | To read the local mode (`+3`,`+2`,`+1`,`NORMAL`,`-1`,`-2`,`-3`,`PROTECTION`,`OFF` |    R   |
-| `setpointTemperature`                  | Thermostat | To set the set point temperature (values between 5.0 - 40 C° by 0.5 C° steps) |    R/W     |
+| `temperature`                        | Number | To read the current temperature value in °C |    R     |
+| `targetTemperature`                    | Number | To read the target temperature value in °C |    R     |
+| `setpointTemperature`                  | Number | To set the set point temperature (values between 5.0 - 40 °C by 0.5 °C steps) |    R/W     |
+| `thermoFunction`                      | String | to read the current thermo function (`HEAT`, `COOL`) |    R     |
+| `setThermoFunction`                    | String | To set the current thermo function (`HEAT`, `COOL`) |    R/W     |
+| `heatingCoolingMode`                   | String | To read heatingcolling mode (`HEAT`,`COOL`) |    R     |
+| `activeMode`                         | String | To read the current active mode (`MANUAL`,`OFF`) |    R     |
+| `setMode`                           | String | To set a new mode (`MANUAL`,`OFF`) |    R/W     |
+| `localMode`                       | String | To read the local mode (`+3`,`+2`,`+1`,`NORMAL`,`-1`,`-2`,`-3`,`PROTECTION`,`OFF` |    R   |
+
 
 
 ### Notes on channels

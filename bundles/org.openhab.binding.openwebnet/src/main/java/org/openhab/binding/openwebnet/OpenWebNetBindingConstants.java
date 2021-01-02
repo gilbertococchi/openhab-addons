@@ -113,16 +113,9 @@ public class OpenWebNetBindingConstants {
 
     // thermoregulation properties
     public static final String CHANNEL_TEMPERATURE = "temperature";
-    public static final String CHANNEL_TEMP_TARGET = "targetTemperature";
     public static final String CHANNEL_THERMO_FUNCTION = "thermoFunction";
-    public static final String CHANNEL_SET_THERMO_FUNCTION = "setThermoFunction";
-    public static final String CHANNEL_HEATING_COOLING_MODE = "heatingCoolingMode";
-    public static final String CHANNEL_HEATING = "heating";
-    public static final String CHANNEL_COOLING = "cooling";
-    public static final String CHANNEL_ACTIVE_MODE = "activeMode";
-    public static final String CHANNEL_LOCAL_MODE = "localMode";
-    public static final String CHANNEL_TEMP_SETPOINT = "setpointTemperature";
-    public static final String CHANNEL_SET_MODE = "setMode";
+    public static final String CHANNEL_OPERATION_MODE = "operationMode";
+    public static final String CHANNEL_TEMP_SETPOINT = "setPointTemperature";
 
     // devices config properties
     public static final String CONFIG_PROPERTY_WHERE = "where";
