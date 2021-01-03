@@ -56,7 +56,6 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     private final Logger logger = LoggerFactory.getLogger(OpenWebNetThermoregulationHandler.class);
 
     private enum Mode {
-        // TODO make it a single map and integrate it with Thermoregulation.WHAT to have automatic translation
         UNKNOWN("UNKNOWN"),
         MANUAL("MANUAL"),
         PROTECTION("PROTECTION"),
@@ -87,6 +86,23 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
 
         public Integer value() {
             return value;
+        }
+    }
+
+    private enum HeatingCoolingMode {
+        HEAT("heat"),
+        COOL("cool"),
+        OFF("off");
+
+        private final String heatingCoolingMode;
+
+        HeatingCoolingMode(final String newHeatingCoolingMode) {
+            this.heatingCoolingMode = newHeatingCoolingMode;
+        }
+
+        @Override
+        public String toString() {
+            return heatingCoolingMode;
         }
     }
 
@@ -132,14 +148,57 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 break;
             case CHANNEL_THERMO_FUNCTION:
                 handleThermoFunctionCommand(command);
+            case CHANNEL_HEATING_COOLING_MODE:
+                handleHeatingCoolingMode(command);
             default: {
                 logger.warn("==OWN:ThermoHandler== Unsupported ChannelUID {}", channelType);
             }
         }
-        // TODO if communication with thing fails for some reason,
-        // indicate that by setting the status with detail information
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-        // "Could not control device at IP address x.x.x.x");
+    }
+
+    private void handleHeatingCoolingMode(Command command) {
+        logger.debug("==OWN:ThermoHandler== handleHeatingCoolingMode() (command={})", command);
+
+        if (command instanceof StringType) {
+
+            String newHeatingCoolingMode = ((StringType) command).toString();
+
+            if (deviceWhere != null) {
+
+                String targetWhere = deviceWhere.value();
+
+                if (newHeatingCoolingMode == HeatingCoolingMode.OFF.toString()) {
+                    try {
+                        send(Thermoregulation.requestTurnOff(targetWhere));
+                    } catch (OWNException e) {
+                        logger.warn(
+                                "==OWN:ThermoHandler== handleHeatingCoolingMode() Cannot handle command {} for thing {}. Exception: {}",
+                                command, getThing().getUID(), e.getMessage());
+                    }
+                } else if (newHeatingCoolingMode == HeatingCoolingMode.HEAT.toString()
+                        || newHeatingCoolingMode == HeatingCoolingMode.COOL.toString()) {
+                    Thermoregulation.MODE newThermoFunction = getOperationMode(
+                            ThermoFunction.valueOf(newHeatingCoolingMode));
+                    try {
+                        Thermoregulation msg = Thermoregulation.requestWriteSetpointTemperature(targetWhere,
+                                currentSetPoint, newThermoFunction);
+                        Response res = send(Thermoregulation.requestWriteSetpointTemperature(targetWhere,
+                                currentSetPoint, newThermoFunction));
+                        if (res != null && res.isSuccess()) {
+                            updateMode(msg);
+                        } else {
+                            logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
+                        }
+                    } catch (MalformedFrameException | OWNException e) {
+                        logger.warn("==OWN:ThermoHandler== handleHeatingCoolingMode() got Exception on frame {}: {}",
+                                command, e.getMessage());
+                    }
+                }
+            }
+        } else {
+            logger.warn("==OWN:ThermoHandler== handleHeatingCoolingMode() Cannot handle command {} for thing {}",
+                    command, getThing().getUID());
+        }
     }
 
     private void handleSetpointCommand(Command command) {
@@ -205,15 +264,15 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             callbackChannelType = CHANNEL_THERMO_FUNCTION;
             requestStatus();
         } else if (command instanceof StringType) {
-            Thermoregulation.MODE newOperationMode = getOperationMode(
+            Thermoregulation.MODE newThermoFunction = getOperationMode(
                     ThermoFunction.valueOf(((StringType) command).toString()));
             if (deviceWhere != null) {
                 String targetWhere = deviceWhere.value();
                 try {
                     Thermoregulation msg = Thermoregulation.requestWriteSetpointTemperature(targetWhere,
-                            currentSetPoint, newOperationMode);
+                            currentSetPoint, newThermoFunction);
                     Response res = send(Thermoregulation.requestWriteSetpointTemperature(targetWhere, currentSetPoint,
-                            newOperationMode));
+                            newThermoFunction));
                     if (res != null && res.isSuccess()) {
                         updateMode(msg);
                     } else {
@@ -332,6 +391,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             logger.debug("==OWN:ThermoHandler== updateMode() mode not processed: msg={}", tmsg);
         }
         updateThermoFunction(w);
+        updateHeatingCoolingMode();
     }
 
     private void updateThermoFunction(Thermoregulation.WHAT what) {
@@ -390,6 +450,26 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         } catch (NumberFormatException | FrameException e) {
             logger.warn("==OWN:ThermoHandler== updateSetpoint() got Exception on frame {}: {}", tmsg, e.getMessage());
             updateState(CHANNEL_TEMP_SETPOINT, UnDefType.NULL);
+        }
+    }
+
+    private void updateHeatingCoolingMode() {
+        logger.debug("==OWN:ThermoHandler== updateHeatingCoolingMode() for thing: {}", thing.getUID());
+        if (currentOperationMode == Mode.OFF) {
+            updateState(CHANNEL_HEATING_COOLING_MODE, new StringType("off"));
+        } else {
+            switch (currentThermoFunction) {
+                case HEAT:
+                    updateState(CHANNEL_HEATING_COOLING_MODE, new StringType("heat"));
+                    break;
+                case COOL:
+                    updateState(CHANNEL_HEATING_COOLING_MODE, new StringType("cool"));
+                    break;
+                case UNKNOWN:
+                default:
+                    updateState(CHANNEL_HEATING_COOLING_MODE, UnDefType.NULL);
+                    break;
+            }
         }
     }
 

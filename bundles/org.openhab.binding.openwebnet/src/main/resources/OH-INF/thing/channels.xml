@@ -95,4 +95,21 @@
 		<state min="5" max="40" pattern="%.1f %unit%" step="0.5" readOnly="false"/>
 	</channel-type>
 
+	<channel-type id="heatingCoolingMode" advanced="true">
+		<item-type>String</item-type>
+		<label>HeatingCoolingMode</label>
+		<description>HeatingCoolingMode of the thermostat</description>
+		<tags>
+			<tag>homekit:HeatingCoolingMode</tag>
+		</tags>
+		<state>
+			<options>
+				<option value="cool">cool</option>
+				<option value="heat">heat</option>
+				<option value="heatcool">heatcool</option>
+				<option value="off">off</option>
+			</options>
+		</state>
+	</channel-type>
+
 </thing:thing-descriptions>
