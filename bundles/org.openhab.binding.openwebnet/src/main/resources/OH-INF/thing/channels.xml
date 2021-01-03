@@ -106,7 +106,6 @@
 			<options>
 				<option value="cool">cool</option>
 				<option value="heat">heat</option>
-				<option value="heatcool">heatcool</option>
 				<option value="off">off</option>
 			</options>
 		</state>

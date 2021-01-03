@@ -150,9 +150,8 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 handleThermoFunctionCommand(command);
             case CHANNEL_HEATING_COOLING_MODE:
                 handleHeatingCoolingMode(command);
-            default: {
+            default:
                 logger.warn("==OWN:ThermoHandler== Unsupported ChannelUID {}", channelType);
-            }
         }
     }
 
