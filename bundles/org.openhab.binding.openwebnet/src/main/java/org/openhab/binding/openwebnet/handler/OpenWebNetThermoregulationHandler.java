@@ -166,9 +166,12 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 if (deviceWhere != null && currentSetPoint != Double.NaN) {
                     String targetWhere = deviceWhere.value();
                     Thermoregulation.MODE operationMode = getOperationMode(currentThermoFunction);
-                    Response res = send(Thermoregulation.requestWriteSetpointTemperature(targetWhere, currentSetPoint,
-                            operationMode));
-                    if (res != null && res.getFinalResponse().isNACK()) {
+                    Thermoregulation msg = Thermoregulation.requestWriteSetpointTemperature(targetWhere,
+                            currentSetPoint, operationMode);
+                    Response res = send(msg);
+                    if (res != null && res.isSuccess()) {
+                        updateSetpoint(msg);
+                    } else {
                         logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
                     }
                 }
@@ -179,6 +182,18 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
         } else {
             logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}", command, getThing().getUID());
             return;
+        }
+    }
+
+    private void updateTargetTemp(Thermoregulation tmsg) {
+        logger.debug("==OWN:ThermoHandler== updateTargetTemp() for thing: {}", thing.getUID());
+        Double temp;
+        try {
+            temp = Thermoregulation.parseTemperature(tmsg);
+            updateState(CHANNEL_TEMP_TARGET, new DecimalType(temp));
+        } catch (NumberFormatException | FrameException e) {
+            logger.warn("==OWN:ThermoHandler== updateTargetTemp() got Exception on frame {}: {}", tmsg, e.getMessage());
+            updateState(CHANNEL_TEMP_TARGET, UnDefType.NULL);
         }
     }
 
@@ -195,9 +210,13 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             if (deviceWhere != null) {
                 String targetWhere = deviceWhere.value();
                 try {
+                    Thermoregulation msg = Thermoregulation.requestWriteSetpointTemperature(targetWhere,
+                            currentSetPoint, newOperationMode);
                     Response res = send(Thermoregulation.requestWriteSetpointTemperature(targetWhere, currentSetPoint,
                             newOperationMode));
-                    if (res != null && res.getFinalResponse().isNACK()) {
+                    if (res != null && res.isSuccess()) {
+                        updateMode(msg);
+                    } else {
                         logger.debug("=OWN:ThermoHandler== Failed sending Setpoint command with WHERE=N");
                     }
                 } catch (MalformedFrameException | OWNException e) {
@@ -244,8 +263,14 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                             // Use WriteSetPointTemperature method to change the ThermoFunction from Heating to Cooling
                             // or vice versa
                             Thermoregulation.MODE operationMode = getOperationMode(currentThermoFunction);
-                            send(Thermoregulation.requestWriteSetpointTemperature(targetWhere, currentSetPoint,
-                                    operationMode));
+                            Thermoregulation msg = Thermoregulation.requestWriteSetpointTemperature(targetWhere,
+                                    currentSetPoint, operationMode);
+                            Response res = send(msg);
+                            if (res != null && res.isSuccess()) {
+                                updateMode(msg);
+                            } else {
+                                logger.debug("=OWN:ThermoHandler== Failed to update Mode with Command={}", command);
+                            }
                         }
                     } catch (MalformedFrameException | OWNException e) {
                         logger.warn("==OWN:ThermoHandler== Cannot handle command {} for thing {}. Exception: {}",
@@ -281,8 +306,9 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             if (messageDim == Thermoregulation.DIM.TEMPERATURE.value()
                     || messageDim == Thermoregulation.DIM.PROBE_TEMPERATURE.value()) {
                 updateTemperature((Thermoregulation) msg);
-            } else if (messageDim == Thermoregulation.DIM.TEMP_SETPOINT.value()
-                    || messageDim == Thermoregulation.DIM.TEMP_TARGET.value()) {
+            } else if (messageDim == Thermoregulation.DIM.TEMP_TARGET.value()) {
+                updateTargetTemp((Thermoregulation) msg);
+            } else if (messageDim == Thermoregulation.DIM.TEMP_SETPOINT.value()) {
                 updateSetpoint((Thermoregulation) msg);
                 if (callbackChannelType != null && callbackCommand != null) {
                     handleChannelCommand(callbackCommand, callbackChannelType);
@@ -327,7 +353,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
             default:
                 break;
         }
-        if (newFunction != null && currentThermoFunction != newFunction) {
+        if (newFunction != null) {
             currentThermoFunction = newFunction;
             updateState(CHANNEL_THERMO_FUNCTION, new StringType(currentThermoFunction.toString()));
         } else {
@@ -336,11 +362,9 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     }
 
     private void updateOperationMode(Mode mode) {
-        logger.debug("==OWN:ThermoHandler== updateOperationMode() for thing: {}", thing.getUID());
-        if (currentOperationMode != mode) {
-            currentOperationMode = mode;
-            updateState(CHANNEL_OPERATION_MODE, new StringType(currentOperationMode.toString()));
-        }
+        logger.debug("==OWN:ThermoHandler== updateOperationMode() for thing: {} with mode: {}", thing.getUID(), mode);
+        currentOperationMode = mode;
+        updateState(CHANNEL_OPERATION_MODE, new StringType(currentOperationMode.toString()));
     }
 
     private void updateTemperature(Thermoregulation tmsg) {

@@ -55,8 +55,8 @@
 		<description>Thermo function of the thermostat</description>
 		<state>
 			<options>
-				<option value="COOL">COOL</option>
-				<option value="HEAT">HEAT</option>
+				<option value="COOL">Cool</option>
+				<option value="HEAT">Heat</option>
 			</options>
 		</state>
 	</channel-type>
@@ -71,6 +71,17 @@
 				<option value="OFF">Off</option>
 			</options>
 		</state>
+	</channel-type>
+
+	<channel-type id="targetTemperature">
+		<item-type>Number:Temperature</item-type>
+		<label>Target Temperaturetemperature</label>
+		<description>Target temperature (read only)</description>
+		<category>Temperature</category>
+		<tags>
+			<tag>TargetTemperature</tag>
+		</tags>
+		<state min="5" max="40" pattern="%.1f %unit%" step="0.5"/>
 	</channel-type>
 
 	<channel-type id="setPointTemperature">

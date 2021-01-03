@@ -115,6 +115,7 @@ public class OpenWebNetBindingConstants {
     public static final String CHANNEL_TEMPERATURE = "temperature";
     public static final String CHANNEL_THERMO_FUNCTION = "thermoFunction";
     public static final String CHANNEL_OPERATION_MODE = "operationMode";
+    public static final String CHANNEL_TEMP_TARGET = "targetTemperature";
     public static final String CHANNEL_TEMP_SETPOINT = "setPointTemperature";
 
     // devices config properties

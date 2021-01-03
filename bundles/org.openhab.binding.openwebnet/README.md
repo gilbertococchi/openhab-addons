@@ -135,15 +135,10 @@ Devices support some of the following channels:
 | `brightness`                         | Dimmer        | To adjust the brightness value (Percent, `ON`, `OFF`) |    R/W     |
 | `shutter`                           | Rollershutter | To activate roller shutters (`UP`, `DOWN`, `STOP`, Percent - [see Shutter position](#shutter-position)) |    R/W     |
 | `temperature`                        | Number | To read the current temperature value in °C |    R     |
-| `targetTemperature`                    | Number | To read the target temperature value in °C |    R     |
+| `targetTemperature`                    | Number | The zone target temperature (°C). It considers setPoint but also activeMode and localMode |    R     |
 | `setpointTemperature`                  | Number | To set the set point temperature (values between 5.0 - 40 °C by 0.5 °C steps) |    R/W     |
-| `thermoFunction`                      | String | to read the current thermo function (`HEAT`, `COOL`) |    R     |
-| `setThermoFunction`                    | String | To set the current thermo function (`HEAT`, `COOL`) |    R/W     |
-| `heatingCoolingMode`                   | String | To read heatingcolling mode (`HEAT`,`COOL`) |    R     |
-| `activeMode`                         | String | To read the current active mode (`MANUAL`,`OFF`) |    R     |
-| `setMode`                           | String | To set a new mode (`MANUAL`,`OFF`) |    R/W     |
-| `localMode`                       | String | To read the local mode (`+3`,`+2`,`+1`,`NORMAL`,`-1`,`-2`,`-3`,`PROTECTION`,`OFF` |    R   |
-
+| `thermoFunction`                      | String | to read the current thermo function (`HEAT`, `COOL`) |    R/W     |
+| `operationMode`                         | String | To read the current Operation mode (`MANUAL`,`OFF`) |    R/W     |
 
 
 ### Notes on channels

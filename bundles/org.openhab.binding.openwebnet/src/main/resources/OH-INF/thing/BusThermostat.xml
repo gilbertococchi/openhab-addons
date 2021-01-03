@@ -16,6 +16,7 @@
 		<channels>
 			<!-- read only -->
 			<channel id="temperature" typeId="temperature"/>
+			<channel id="targetTemperature" typeId="targetTemperature"/>
 			<!-- read/write -->
 			<channel id="operationMode" typeId="operationMode"/>
 			<channel id="thermoFunction" typeId="thermoFunction"/>
