@@ -49,18 +49,6 @@
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
 
-	<channel-type id="thermoFunction">
-		<item-type>String</item-type>
-		<label>Thermo Function</label>
-		<description>Thermo function of the thermostat</description>
-		<state>
-			<options>
-				<option value="COOL">Cool</option>
-				<option value="HEAT">Heat</option>
-			</options>
-		</state>
-	</channel-type>
-
 	<channel-type id="operationMode">
 		<item-type>String</item-type>
 		<label>Operation Mode</label>
@@ -95,7 +83,7 @@
 		<state min="5" max="40" pattern="%.1f %unit%" step="0.5" readOnly="false"/>
 	</channel-type>
 
-	<channel-type id="heatingCoolingMode" advanced="true">
+	<channel-type id="heatingCoolingMode">
 		<item-type>String</item-type>
 		<label>HeatingCoolingMode</label>
 		<description>HeatingCoolingMode of the thermostat</description>

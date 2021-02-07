@@ -19,7 +19,6 @@
 			<channel id="targetTemperature" typeId="targetTemperature"/>
 			<!-- read/write -->
 			<channel id="operationMode" typeId="operationMode"/>
-			<channel id="thermoFunction" typeId="thermoFunction"/>
 			<channel id="heatingCoolingMode" typeId="heatingCoolingMode"/>
 			<channel id="setPointTemperature" typeId="setPointTemperature"/>
 		</channels>

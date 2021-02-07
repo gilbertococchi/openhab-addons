@@ -139,6 +139,7 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
     }
 
     protected void handleChannelCommand(Command command, String channelType) {
+        logger.debug("==OWN:ThermoHandler== handleChannelCommand() (command={}, channelUID={})", command, channelType);
         switch (channelType) {
             case CHANNEL_TEMP_SETPOINT:
                 handleSetpointCommand(command);
@@ -148,8 +149,10 @@ public class OpenWebNetThermoregulationHandler extends OpenWebNetThingHandler {
                 break;
             case CHANNEL_THERMO_FUNCTION:
                 handleThermoFunctionCommand(command);
+                break;
             case CHANNEL_HEATING_COOLING_MODE:
                 handleHeatingCoolingMode(command);
+                break;
             default:
                 logger.warn("==OWN:ThermoHandler== Unsupported ChannelUID {}", channelType);
         }
