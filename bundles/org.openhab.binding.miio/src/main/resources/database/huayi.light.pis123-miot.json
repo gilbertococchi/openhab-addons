@@ -21,7 +21,7 @@
 				"property": "on",
 				"siid": 2,
 				"piid": 1,
-				"friendlyName": "Light - Switch Status",
+				"friendlyName": "Light - Power",
 				"channel": "on",
 				"type": "Switch",
 				"refresh": true,
@@ -42,8 +42,7 @@
 				"piid": 2,
 				"friendlyName": "Light - Brightness",
 				"channel": "brightness",
-				"type": "Number:Dimensionless",
-				"unit": "percentage",
+				"type": "Dimmer",
 				"stateDescription": {
 					"minimum": 1,
 					"maximum": 100,
@@ -57,7 +56,7 @@
 						"parameterType": "NUMBER"
 					}
 				],
-				"category": "dimmablelight",
+				"category": "light",
 				"tags": [
 					"Setpoint",
 					"Light"

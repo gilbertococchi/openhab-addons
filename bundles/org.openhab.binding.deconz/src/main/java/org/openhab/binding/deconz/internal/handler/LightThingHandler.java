@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -29,6 +29,7 @@ import org.openhab.binding.deconz.internal.dto.LightMessage;
 import org.openhab.binding.deconz.internal.dto.LightState;
 import org.openhab.binding.deconz.internal.types.ResourceType;
 import org.openhab.core.library.types.*;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
@@ -78,6 +79,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
      */
     private LightState lightStateCache = new LightState();
     private LightState lastCommand = new LightState();
+    private int onTime = 0; // in 0.1s
+    private String colorMode = "";
 
     // set defaults, we can override them later if we receive better values
     private int ctMax = ZCL_CT_MAX;
@@ -115,11 +118,27 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                 needsPropertyUpdate = true;
             }
         }
+        ThingConfig thingConfig = getConfigAs(ThingConfig.class);
+        colorMode = thingConfig.colormode;
+
         super.initialize();
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
+        if (channelUID.getId().equals(CHANNEL_ONTIME)) {
+            if (command instanceof QuantityType<?>) {
+                QuantityType<?> onTimeSeconds = ((QuantityType<?>) command).toUnit(Units.SECOND);
+                if (onTimeSeconds != null) {
+                    onTime = 10 * onTimeSeconds.intValue();
+                } else {
+                    logger.warn("Channel '{}' received command '{}', could not be converted to seconds.", channelUID,
+                            command);
+                }
+            }
+            return;
+        }
+
         if (command instanceof RefreshType) {
             valueUpdated(channelUID.getId(), lightStateCache);
             return;
@@ -131,8 +150,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
 
         switch (channelUID.getId()) {
             case CHANNEL_ALERT:
-                if (command instanceof OnOffType) {
-                    newLightState.alert = command == OnOffType.ON ? "alert" : "none";
+                if (command instanceof StringType) {
+                    newLightState.alert = command.toString();
                 } else {
                     return;
                 }
@@ -179,7 +198,7 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                     }
                 } else if (command instanceof HSBType) {
                     HSBType hsbCommand = (HSBType) command;
-                    if ("xy".equals(lightStateCache.colormode)) {
+                    if ("xy".equals(colorMode)) {
                         PercentType[] xy = hsbCommand.toXY();
                         if (xy.length < 2) {
                             logger.warn("Failed to convert {} to xy-values", command);
@@ -251,6 +270,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
             // if light shall be off, no other commands are allowed, so reset the new light state
             newLightState.clear();
             newLightState.on = false;
+        } else if (newOn != null && newOn) {
+            newLightState.ontime = onTime;
         }
 
         sendCommand(newLightState, command, channelUID, () -> {
@@ -268,6 +289,7 @@ public class LightThingHandler extends DeconzBaseThingHandler {
         }
 
         LightMessage lightMessage = (LightMessage) stateResponse;
+
         if (needsPropertyUpdate) {
             // if we did not receive an ctmin/ctmax, then we probably don't need it
             needsPropertyUpdate = false;
@@ -282,7 +304,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
             }
         }
 
-        if (lightMessage.state.effect != null) {
+        LightState lightState = lightMessage.state;
+        if (lightState != null && lightState.effect != null) {
             checkAndUpdateEffectChannels(lightMessage);
         }
 
@@ -304,7 +327,8 @@ public class LightThingHandler extends DeconzBaseThingHandler {
         } else if (lightMessage.manufacturername.equals("MLI")) {
             model = EffectLightModel.TINT_MUELLER;
         } else {
-            logger.info("Could not determine effect light type for thing {}, please request adding support on GitHub.",
+            logger.debug(
+                    "Could not determine effect light type for thing {}, if you feel this is wrong request adding support on GitHub.",
                     thing.getUID());
         }
 
@@ -357,7 +381,10 @@ public class LightThingHandler extends DeconzBaseThingHandler {
 
         switch (channelId) {
             case CHANNEL_ALERT:
-                updateState(channelId, "alert".equals(newState.alert) ? OnOffType.ON : OnOffType.OFF);
+                String alert = newState.alert;
+                if (alert != null) {
+                    updateState(channelId, new StringType(alert));
+                }
                 break;
             case CHANNEL_SWITCH:
             case CHANNEL_LOCK:
@@ -425,6 +452,13 @@ public class LightThingHandler extends DeconzBaseThingHandler {
                     // skip for SKIP_UPDATE_TIMESPAN after last command if lightState is different from command
                     logger.trace("Ignoring differing update after last command until {}", lastCommandExpireTimestamp);
                     return;
+                }
+                if (colorMode.isEmpty()) {
+                    String cmode = lightState.colormode;
+                    if (cmode != null && ("hs".equals(cmode) || "xy".equals(cmode))) {
+                        // only set the color mode if it is hs or xy, not ct
+                        colorMode = cmode;
+                    }
                 }
                 lightStateCache = lightState;
                 if (Boolean.TRUE.equals(lightState.reachable)) {

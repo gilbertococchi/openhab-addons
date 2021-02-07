@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -78,6 +78,7 @@ public class OwnIdTest {
 
         // @formatter:on
 
+        private final Logger logger = LoggerFactory.getLogger(TEST.class);
         public final Where where;
         public final Who who;
         public final @Nullable BaseOpenMessage msg;
@@ -90,7 +91,7 @@ public class OwnIdTest {
             try {
                 bmsg = (BaseOpenMessage) BaseOpenMessage.parse(msg);
             } catch (FrameException e) {
-                // if we get here there is an error in the table above
+                logger.warn("something is wrong in the test table. ownIdFromMessage test will be skipped");
             }
             this.msg = bmsg;
             this.norm = norm;

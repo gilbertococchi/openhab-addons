@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.openhab.addons.bom</groupId>
     <artifactId>org.openhab.addons.reactor.bom</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.openhab.addons.bom.openhab-addons</artifactId>
@@ -19,6 +19,16 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.automation.groovyscripting</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.automation.jythonscripting</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.automation.pidcontroller</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -59,6 +69,11 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.ambientweather</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.androiddebugbridge</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -133,6 +148,11 @@
     </dependency>
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.bluetooth.govee</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.bluetooth.roaming</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -144,6 +164,11 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.boschindego</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.boschshc</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -383,12 +408,22 @@
     </dependency>
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.generacmobilelink</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.globalcache</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.goecharger</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.gpio</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -409,6 +444,11 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.harmonyhub</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.haywardomnilogic</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -738,6 +778,11 @@
     </dependency>
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.modbus.sbc</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.modbus.stiebeleltron</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -764,6 +809,11 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.mqtt</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.mqtt.espmilighthub</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -884,6 +934,11 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.omnikinverter</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.omnilink</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -1044,6 +1099,11 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.robonect</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.roku</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -1248,6 +1308,11 @@
     </dependency>
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.tivo</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.touchwand</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -1429,11 +1494,6 @@
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.io.openhabcloud</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openhab.addons.bundles</groupId>
-      <artifactId>org.openhab.io.transport.modbus</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
