@@ -40,7 +40,7 @@
 	<!-- Thermo channels -->
 	<channel-type id="temperature">
 		<item-type>Number:Temperature</item-type>
-		<label>Temperature</label>
+		<label>Current Temperature</label>
 		<description>Current temperature (read only)</description>
 		<category>Temperature</category>
 		<tags>
@@ -75,7 +75,7 @@
 
 	<channel-type id="targetTemperature">
 		<item-type>Number:Temperature</item-type>
-		<label>Target Temperaturetemperature</label>
+		<label>Target Temperature</label>
 		<description>Target temperature (read only)</description>
 		<category>Temperature</category>
 		<tags>
